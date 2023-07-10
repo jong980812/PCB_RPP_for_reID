@@ -117,7 +117,7 @@ class ResNet(nn.Module):
     def forward(self, x):
         for name, module in self.base._modules.items():
             if name == 'avgpool':
-                break
+                break#여기서 B, 2048, 24, 8
             x = module(x)
 
         if self.cut_at_pooling:
@@ -128,19 +128,20 @@ class ResNet(nn.Module):
             y = F.avg_pool3d(x,(16,1,1)).squeeze(1)
             sx = x.size(2)/6
             kx = x.size(2)-sx*5
-            x = F.avg_pool2d(x,kernel_size=(kx,x.size(3)),stride=(sx,x.size(3)))   # H4 W8
-#========================================================================#            
+            x = F.avg_pool2d(x,kernel_size=(int(kx),x.size(3)),stride=(int(sx),x.size(3)))   # kernel size -> H4 W8
+#========================================================================# -> B, C, 6, 1          
 
             out0 = x.view(x.size(0),-1)
             out0 = x/x.norm(2,1).unsqueeze(1).expand_as(x)
             x = self.drop(x)
-            x = self.local_conv(x)
+            x = self.local_conv(x)# 차원만 2048-> 256해주는 1by 1 convolution
             out1 = x/x.norm(2,1).unsqueeze(1).expand_as(x)
             x = self.feat_bn2d(x)
             x = F.relu(x) # relu for local_conv feature
             
             x = x.chunk(6,2)
-            x0 = x[0].contiguous().view(x[0].size(0),-1)
+            # X는 6개로 split됌. -> B,C(256),1,1
+            x0 = x[0].contiguous().view(x[0].size(0),-1)# 뒤에 1,1 없애주는 코드 -> B,C(256)
             x1 = x[1].contiguous().view(x[1].size(0),-1)
             x2 = x[2].contiguous().view(x[2].size(0),-1)
             x3 = x[3].contiguous().view(x[3].size(0),-1)
