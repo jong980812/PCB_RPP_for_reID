@@ -126,16 +126,16 @@ class ResNet(nn.Module):
         if self.FCN:
             T = self.T         
             y = self.drop(x).unsqueeze(1)
-            stride = 2048/self.reduce_dim
+            stride = int(2048/self.reduce_dim)
             y = F.avg_pool3d(y,kernel_size=(stride,1,1),stride=(stride,1,1)).squeeze(1)
             center = F.avg_pool2d(y,(y.size(2),y.size(3)))
             y = y-center.expand_as(y)
-            local_mask = self.local_mask(y)
+            local_mask = self.local_mask(y)#6,24,8
             local_mask = F.softmax(T*local_mask)   #using softmax mode
 
             lw = local_mask.chunk(6,1)
             x = x*6
-            f0 = x*(lw[0].expand_as(x))
+            f0 = x*(lw[0].expand_as(x))#128,1,24,8
             f1 = x*(lw[1].expand_as(x))
             f2 = x*(lw[2].expand_as(x))
             f3 = x*(lw[3].expand_as(x))

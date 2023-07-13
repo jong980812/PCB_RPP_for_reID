@@ -18,7 +18,7 @@ from reid.utils.data import transforms as T
 from reid.utils.data.preprocessor import Preprocessor
 from reid.utils.logging import Logger
 from reid.utils.serialization import load_checkpoint, save_checkpoint
-
+from reid.utils.unfreeze import unfreeze_block
 
 def get_data(name, data_dir, height, width, batch_size, workers):
     root = osp.join(data_dir, name)
@@ -90,7 +90,9 @@ def main(args):
     # Create model
     model = models.create(args.arch, num_features=args.features,
                           dropout=args.dropout, num_classes=num_classes,cut_at_pooling=False, FCN=True, T=args.T, dim=args.dim)
-
+    if args.unfreeze_layers is not None:
+        model, unfreeze_list = unfreeze_block(model,args.unfreeze_layers)
+        print('unfreeze list :', unfreeze_list)
     # Load from checkpoint
     start_epoch = best_top1 = 0
     if args.resume:
@@ -197,7 +199,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=50)
     parser.add_argument('--T', type=float, default =1)# temperature for soft pooling
     parser.add_argument('--lr_mult', type=float, default =1)# temperature for soft pooling
-    parser.add_argument('--step_size',type=int, default =100)
+    parser.add_argument('--step-size',type=int, default =100)
     parser.add_argument('--dim', type=int, default =256)# temperature for soft pooling
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--print-freq', type=int, default=1)
@@ -210,4 +212,6 @@ if __name__ == '__main__':
                         default=osp.join(working_dir, 'data'))
     parser.add_argument('--logs-dir', type=str, metavar='PATH',
                         default=osp.join(working_dir, 'logs'))
+    parser.add_argument('--unfreeze_layers', default=None, nargs='+', type=str)
+    
     main(parser.parse_args())

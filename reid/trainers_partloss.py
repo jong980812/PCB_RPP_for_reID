@@ -38,7 +38,8 @@ class BaseTrainer(object):
             precisions.update(prec1, targets.size(0))
 
             optimizer.zero_grad()
-            torch.autograd.backward([ loss0, loss1, loss2, loss3, loss4, loss5],[torch.ones(1).cuda(), torch.ones(1).cuda(), torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda()]) 
+            # torch.autograd.backward([ loss0, loss1, loss2, loss3, loss4, loss5],[torch.ones(1).cuda(), torch.ones(1).cuda(), torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda(),torch.ones(1).cuda()]) 
+            torch.autograd.backward([ loss0, loss1, loss2, loss3, loss4, loss5],[torch.tensor(1, dtype=torch.float), torch.tensor(1, dtype=torch.float), torch.tensor(1, dtype=torch.float),torch.tensor(1, dtype=torch.float),torch.tensor(1, dtype=torch.float),torch.tensor(1, dtype=torch.float),torch.tensor(1, dtype=torch.float)]) 
             optimizer.step()
 
             batch_time.update(time.time() - end)
@@ -84,6 +85,10 @@ class Trainer(BaseTrainer):
             loss4 = self.criterion(outputs[1][4],targets)
             loss5 = self.criterion(outputs[1][5],targets)
             prec, = accuracy(outputs[1][2].data, targets.data)
+            # prec_1, = accuracy(outputs[1][1].data, targets.data)
+            # prec_2, = accuracy(outputs[1][2].data, targets.data)
+            # prec_5, = accuracy(outputs[1][5].data, targets.data)
+            # prec_3, = accuracy(outputs[1][3].data, targets.data)
             prec = prec
                         
         elif isinstance(self.criterion, OIMLoss):
